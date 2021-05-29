@@ -1,13 +1,15 @@
 from flask import Flask, request
+from flask_cors import CORS
 
 #print(__name__)
 app = Flask(__name__)
+CORS(app,methods=['GET',"POST"],origins=['*'])
 productos = []
 
 @app.route("/")
 def inicio():
     print("Me hicieron un llamado")
-    return "Salidos desde mi API"
+    return "Salidos desde mi API",200
 
 @app.route("/productos", methods = ['GET','POST'])
 def gestion_productos():
