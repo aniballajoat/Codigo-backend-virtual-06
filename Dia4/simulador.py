@@ -11,11 +11,15 @@ for id in range(1,501):
     nombre = fake.first_name()
     apellido = fake.last_name()
     identificador = fake.uuid4()
-    departamento_id = fake.random_int(min=1,max=5)
+    departamento_id = fake.random_int(min=1,max=4)
     if id == 1:
         supervisor_id = "null"
     else:
-        supervisor_id = fake.random_int(min=1,max=id)
+        supervisor_id = fake.random_int(min=-10,max=id-1)
+        #haremos que el numero random pueda ir desde el -10 hasta el < id actual, luego, si el numero es <0
+        #entonces el empleado no tendra supervisor (null)
+        if supervisor_id<=0:
+            supervisor_id = "null"
     print("INSERT INTO PERSONALES VALUES({},'{}','{}','{}',{},{});".format(
         id, nombre,apellido,identificador,departamento_id,supervisor_id))
 
