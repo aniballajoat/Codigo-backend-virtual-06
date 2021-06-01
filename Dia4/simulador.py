@@ -62,4 +62,20 @@ def data_muchos(alumnos):
         print('INSERT INTO CURSOS VALUES({},"{}","{}","{}");'.format(
             id_curso,curso,fecha_inicio,fecha_fin))
         id_curso += 1
-data_muchos(2)
+
+    # en base a los cursos y alumnos generados, crear el simulador dentro de
+    # esta funcion para que enlace los alumnos con los cursos, no se puede repetir un
+    # alumno-curso
+    #2  -  2
+    #2  -  2
+    registro_alumno_curso = []
+    for ciclo in range(1,alumnos*2):
+        alumno = fake.random_int(min=1, max=alumnos)
+        curso = fake.random_int(min=1,max=len(cursos))
+        if [alumno,curso]in registro_alumno_curso:
+            ciclo -= 1
+        else:
+            registro_alumno_curso.append([alumno,curso])
+            print('INSERT INTO ALUMNOS_CURSOS VALUES ({},{});'.format(alumno,curso))
+
+data_muchos(100)
