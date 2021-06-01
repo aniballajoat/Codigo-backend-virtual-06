@@ -49,7 +49,7 @@ def data_muchos(alumnos):
         localidad = fake.city()
         fecha_nacimiento = fake.date_between_dates(date_start=datetime(
             1992,12,30), date_end=datetime(2000,7,12))
-        print('INSERT INTO alumnos VALUES({},{},{},{},{},{});'.format(
+        print('INSERT INTO alumnos VALUES({},"{}","{}","{}","{}","{}");'.format(
             id,matricula,nombre,apellido, localidad, fecha_nacimiento))
     
     id_curso = 1
