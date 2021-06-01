@@ -39,3 +39,32 @@ INSERT INTO PRODUCTOS 	(nombre, precio, disponible, categoria_id) VALUES
                         ("ZAPATILLA OFFROAD MUJER",320.89,true,2),
                         ("BOTIN TACO 4",520.00,true,3),
                         ("BOTA TACO 10",710,false,4);
+                        
+                        
+-- SELECT * from categorias WHERE nombre LIKE '%A%';
+-- SELECT * from productos WHERE precio >=100;
+
+INSERT INTO CATEGORIAS 	(nombre, abbr, imagen) value
+						("BEBES","BEB","url5");
+                        
+INSERT INTO PRODUCTOS 	(nombre, precio, disponible) VALUES
+						("SANDALIAS BOB TORONJA",19.90,true);
+SELECT * FROM CATEGORIAS;
+SELECT * FROM CATEGORIAS INNER JOIN PRODUCTOS ON CATEGORIAS.ID = PRODUCTOS.CATEGORIA_ID;
+
+SELECT * FROM CATEGORIAS LEFT JOIN PRODUCTOS ON CATEGORIAS.ID = PRODUCTOS.CATEGORIA_ID;
+
+SELECT * FROM CATEGORIAS RIGHT JOIN PRODUCTOS ON CATEGORIAS.ID = PRODUCTOS.CATEGORIA_ID;
+-- AGGREGATION FUNCTIONS
+SELECT count(*) from productos;
+SELECT count(*) from categorias;
+
+-- seleccioname todos los nombres cuyo alias sera el nombre del producto, precio y disponible de
+-- categorias, interseccion producto cuando cat.id = prod.categoria_id donde el nombre de la categoria
+-- sea zapato
+
+-- ALIAS =>AS
+SELECT cat.nombre as 'nombre del producto', prod.precio, prod.disponible
+FROM CATEGORIAS AS cat JOIN PRODUCTOS as prod ON cat.ID = prod.CATEGORIA_ID
+WHERE cat.nombre = "ZAPATO";
+
