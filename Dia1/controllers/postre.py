@@ -3,6 +3,7 @@
 from flask_restful import Resource, reqparse
 from models.postre import PostreModel
 
+
 # serializer (serializador)
 serializerPostres = reqparse.RequestParser(bundle_errors=True)
 serializerPostres.add_argument(
@@ -24,9 +25,33 @@ serializerPostres.add_argument(
 class PostresController(Resource):
     def get(self):
         # SELECT * FROM postres;
-        print(PostreModel.query.all())
-        return 'ok'
+        postres = PostreModel.query.all()
+        resultado = []
+        for postre in postres:
+            print(postre.json())
+            resultado.append(postre.json())
+        return {
+            'success':True,
+            'content':resultado,
+            'message':None
+        }
+
+
     def post(self):
         data = serializerPostres.parse_args()
-        print(data)
+        nuevoPostre = PostreModel(nombre=data.get(
+            'nombre'), porcion=data.get('porcion')
+            )
+        print(nuevoPostre)
+        nuevoPostre.save()
+
+        return {
+            'succes':True,
+            'content':nuevoPostre.json(),
+            'message':'Postre creado exitosamente'
+        },201
+class PostreController(Resource):
+    def get(self,id):
+        postre = PostreModel.query.filter_by(postreId=id).first()
+        print(postre)
         return 'ok'
