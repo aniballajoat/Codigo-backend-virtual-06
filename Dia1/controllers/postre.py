@@ -124,23 +124,26 @@ class BusquedaPostre(Resource):
         #primero validar si hay nombre, porcion o ambos
         #luego devolver todos los postres que hagan match con la busqueda
         filtros = self.serializerBusqueda.parse_args()
+        
         if filtros.get('nombre'):
             if filtros.get('porcion'):
                 resultado = base_de_datos.session.query(PostreModel).filter_by(
                     postreNombre=filtros.get('nombre'),postrePorcion=filtros.get('porcion')).all()
-                print(resultado)
-                return 'ok'
             else:
-                postreNombre = base_de_datos.session.query(PostreModel).filter_by(
+                resultado = base_de_datos.session.query(PostreModel).filter_by(
                 postreNombre=filtros.get('nombre')).all()
-            print(postreNombre)
-            return 'ok'
         elif filtros.get('porcion'):
-            postrePorcion = base_de_datos.session.query(PostreModel).filter_by(
+            resultado = base_de_datos.session.query(PostreModel).filter_by(
                 postrePorcion=filtros.get('porcion')).all()
-            print(postrePorcion)
-            return 'ok'
         else:
             return{
                 'message': 'Necesitas dar al menos un parametro'
             },400
+        postres = []
+        for postre in resultado:
+            postres.append(postre.json())
+        return{
+            "message": None,
+            "content":postres,
+            "success":True
+        }
