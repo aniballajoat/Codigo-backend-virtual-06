@@ -2,15 +2,32 @@ from controllers.preparacion import PreparacionesController
 from flask import Flask, request
 # Para usar las variables declaradas en el archivo .env
 from dotenv import load_dotenv
-from os import environ, lseek
+from os import environ
 from config.conexion_bd import base_de_datos
 from flask_restful import Api
 from controllers.postre import BusquedaPostre, PostresController, PostreController
 from controllers.ingrediente import IngredienteController,IngredientesController
 from controllers.preparacion import PreparacionesController
 from models.receta import RecetaModel
+from flask_swagger_ui import get_swaggerui_blueprint
+
+
 load_dotenv()
+
+# Configurar el swagger en FLASK
+SWAGGER_URL = "/api/docs" # Esta variable sirve para indicar en que ruta (endpoint) se encuentra la documentacion
+API_URL = "/static/swagger.json" # indica la ubicacion del archivo json
+swagger_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={
+        'app_name': "Reposteria Flask - Swagger Documentation"
+    }
+)
+# Fin configuracion
 app = Flask(__name__)
+# sirve para registrar en el caso que nosotros tengamos un proyecto interno para agregarlo a un proyecto principal
+app.register_blueprint(swagger_blueprint)
 api = Api(app)
 # dialect://username:password@host:port/database
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DATABASE_URI')
