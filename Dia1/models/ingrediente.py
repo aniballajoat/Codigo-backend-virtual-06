@@ -8,8 +8,6 @@ class IngredienteModel(base_de_datos.Model):
     ingredienteNombre = Column(
         name='nombre', type_=types.String(length=45), nullable=False)
     recetas = orm.relationship('RecetaModel', backref='recetaIngrediente')
-    def __init__(self, nombre):
-        self.ingredienteNombre = nombre
 
     # asi se crean las relaciones entre un modelo y otro
     # ondelete sirve para indicar que accion tomaran todas las FK cuando una pk sea eliminada
@@ -21,3 +19,13 @@ class IngredienteModel(base_de_datos.Model):
 
     def __init__(self,nombre):
         self.ingredienteNombre = nombre
+
+    def save(self):
+        base_de_datos.session.add(self)
+        base_de_datos.session.commit()
+
+    def json(self):
+        return{
+            "id": self.ingredienteId,
+            "nombre":self.ingredienteNombre
+        }

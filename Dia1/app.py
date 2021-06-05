@@ -6,9 +6,8 @@ from os import environ, lseek
 from config.conexion_bd import base_de_datos
 from flask_restful import Api
 from controllers.postre import BusquedaPostre, PostresController, PostreController
-from models.postre import PostreModel
-from models.preparacion import PreparacionModel
-from models.ingrediente import IngredienteModel
+from controllers.ingrediente import IngredienteController,IngredientesController
+from controllers.preparacion import PreparacionesController
 from models.receta import RecetaModel
 load_dotenv()
 app = Flask(__name__)
@@ -39,7 +38,9 @@ def initial_controller():
 api.add_resource(PostresController,"/postres")
 api.add_resource(PostreController,"/postres/<int:id>")
 api.add_resource(BusquedaPostre, "/busqueda_postre")
-api.add_resource(PreparacionesController, "/preparaciones")
+api.add_resource(PreparacionesController, "/preparaciones", "/preparaciones/<int:postre_id>")
+api.add_resource(IngredienteController,"/ingredientes/<int:id>")
+api.add_resource(IngredientesController,"/ingredientes")
 
 
 if __name__ =='__main__':
