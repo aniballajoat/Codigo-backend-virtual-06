@@ -1,0 +1,3 @@
+usar el comando:
+pip freeze > nombre_del_txt.txt
+
