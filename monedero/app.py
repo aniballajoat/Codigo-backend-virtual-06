@@ -1,18 +1,28 @@
 from flask import Flask
 from flask_restful import Api
 from controllers.usuario import RegistroController
-from models.movimiento import MovimientoModel
+from controllers.movimiento import MovimientosController
 from models.sesion import SesionModel
 from os import environ
 from dotenv import load_dotenv
 from config.conexion_bd import base_de_datos
+from flask_jwt import JWT
+from config.seguridad import autenticador, identificador
+from config.custom_jwt import manejo_error_JWT
+from datetime import timedelta
 
 load_dotenv()
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get("DATABASE_URI")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY']='claveSecreta'
+app.config['JWT_EXPIRATION_DELTA'] = timedelta(minutes=1, seconds=10)
 
+jsonwebtoken = JWT(app=app, authentication_handler=autenticador,
+                identity_handler=identificador)
+
+jsonwebtoken.jwt_error_callback = manejo_error_JWT
 base_de_datos.init_app(app)
 #base_de_datos.drop_all(app=app)
 base_de_datos.create_all(app=app)
@@ -21,6 +31,7 @@ base_de_datos.create_all(app=app)
 api = Api(app)
 
 api.add_resource(RegistroController,"/registro")
+api.add_resource(MovimientosController,"/movimientos")
 
 if __name__ == '__main__':
     app.run(debug=True)
