@@ -15,6 +15,14 @@ def manejo_error_JWT(error):
         respuesta["message"]="Se necesita una token para esta peticion"
     elif error.error == 'Bad Request':
         respuesta["message"]="Credenciales invalidas"
-    
+    elif error.error == 'Signature has expired':
+        respuesta["message"]="El token ya expiro"
+    elif error.error == 'Signature verification failed':
+        respuesta["message"]="Token invalido"
+    elif error.error == 'Unsupported authorization type':
+        respuesta["message"]="Tipo no autorizado"
+    else:
+        respuesta["message"]="Error desconocido"
     return respuesta, error.status_code
+
     # 401 => unauthorized => no autorizado
