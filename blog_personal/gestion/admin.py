@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import LibroModel, UsuarioModel
+from .models import LibroModel, PrestamoModel, UsuarioModel
 # Register your models here.
 
 class LibroAdmin(admin.ModelAdmin):
@@ -13,5 +13,9 @@ class LibroAdmin(admin.ModelAdmin):
     # los campos de solo lectura, se colocaran al final, despues de los campos de escritura
     readonly_fields = ['libroId']
 
+class PrestamoAdmin(admin.ModelAdmin):
+    list_display=['usuario','libro']
+
 admin.site.register(LibroModel, LibroAdmin)
 admin.site.register(UsuarioModel)
+admin.site.register(PrestamoModel, PrestamoAdmin)
