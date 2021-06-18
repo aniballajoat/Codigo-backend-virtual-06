@@ -1,4 +1,4 @@
-from rest_framework.generics import  ListCreateAPIView
+from rest_framework.generics import  ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status
@@ -18,7 +18,11 @@ class LibrosController(ListCreateAPIView):
         libros = self.get_queryset()
         respuesta=self.serializer_class(instance=libros, many=True)
         print(respuesta.data)
-        return Response(data=respuesta.data, status=200)
+        return Response(data={
+            'success': True,
+            'content': respuesta.data,
+            'message':None
+        }, status=200)
 
     def post(self, request:Request):
         # la informacion mandada por le front (body) se recibira por el atributo data
@@ -44,3 +48,24 @@ class LibrosController(ListCreateAPIView):
                 "content":None,
                 "message": "La data no es valida",
             },status=status.HTTP_400_BAD_REQUEST)
+
+class LibroController(RetrieveUpdateDestroyAPIView):
+    queryset= LibroModel.objects.all()
+    serializer_class = LibroSerializer
+
+    def get (self, request:Request, pk):
+        libro = LibroModel.objects.filter(libroId=pk).first()
+        print(libro)
+        if libro is not None:
+            libroSerializado = self.serializer_class(instance=libro)
+            return Response(data={
+                "success": True,
+                "message": None,
+                "content": libroSerializado.data,
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response(data={
+                "message": "Libro no encontrado",
+                "content": None,
+                "success": False,
+            }, status=status.HTTP_404_NOT_FOUND)
