@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from .models import LibroModel, PrestamoModel, UsuarioModel
 from .serializers import (LibroSerializer,
-                          BusquedaLibroSerializer,
+                          BusquedaLibroSerializer, PrestamoUsuarioSerializer, UsuarioPrestamoSerializer,
                           UsuarioSerializer,
                           PrestamoSerializer)
 
@@ -237,14 +237,55 @@ class PrestamosController(CreateAPIView):
 
         return Response(data={
             "success": False,
-            "content": nuevoPrestamo.errors or respuesta if type(respuesta) is str else respuesta.args,
+            "content": nuevoPrestamo.errors or (respuesta if type(respuesta) is str else respuesta.args),
             "message": "Error al crear el prestamo"
         }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PrestamoController(RetrieveAPIView):
     queryset = PrestamoModel.objects.all()
-    serializer_class = PrestamoSerializer
+    serializer_class = PrestamoUsuarioSerializer
 
     def get(self, request, id):
-        pass
+        prestamo = PrestamoModel.objects.filter(prestamoId = id).first()
+        if prestamo:
+            data = self.serializer_class(instance=prestamo)
+            return Response(data={
+                "success": True,
+                "content": data.data,
+                "message": None,
+            })
+        else:
+            return Response(data={
+                "success": False,
+                "content": None,
+                "message": "Prestamo no existe",
+            }, status= status.HTTP_404_NOT_FOUND)
+
+# hacer un controlador con ruta en la cual mediante la siguiente 
+# ruta : /usuario/1 me retornse el usuario si es que existe, sino
+# retornara un 404
+
+class UsuarioController(RetrieveAPIView):
+    queryset = UsuarioModel.objects.all()
+    serializer_class = UsuarioPrestamoSerializer
+    def get(self, request, id):
+        usuario = UsuarioModel.objects.filter(usuarioId = id). first()
+        if usuario:
+            data = self.serializer_class(instance=usuario)
+            return Response(data={
+                "success": True,
+                "content": data.data,
+                "message": None
+            })
+        else:
+            return Response(data={
+                "success": False,
+                "content": None,
+                "message": "Usuario no existe",
+            }, status= status.HTTP_404_NOT_FOUND)
+    def post(self, request, id):
+        print(id)
+        return Response(data={
+            "message": "no es posible!"
+        })
