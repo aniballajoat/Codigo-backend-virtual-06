@@ -1,6 +1,8 @@
+from datetime import date
 from rest_framework import serializers
-from .models import LibroModel, UsuarioModel
+from .models import LibroModel, PrestamoModel, UsuarioModel
 from django.utils.timezone import now
+from django.db import transaction, Error
 
 
 class LibroSerializer(serializers.ModelSerializer):
@@ -57,4 +59,59 @@ class BusquedaLibroSerializer(serializers.Serializer):
 class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = UsuarioModel
+        fields = '__all__'
+
+
+class PrestamoSerializer(serializers.ModelSerializer):
+    # def validate(self, data):
+    # mover las siguientes validaciones al metodo validate
+    # validar si el usuario no tiene un prestamo activo
+    # validar si el libro no fue inhabilitado (deleteAt)
+    # no usar el self.validated_data sino el self.initial_data pero el initial_data no hace la busqueda del libro ni del usuario
+    # return data
+
+    # def validacion(self):
+    #     pass
+    def save(self):
+        if self.validated_data.get('libro').libroCantidad > 0:
+            # creamos una transaccion
+            # https://docs.djangoproject.com/en/3.2/topics/db/transactions/
+            prestamoActivo = PrestamoModel.objects.filter(usuario=self.validated_data.get(
+                'usuario').usuarioId, prestamoEstado=True).first()
+            if prestamoActivo:
+                return "El usuario tiene un prestamo activo"
+            libro = LibroModel.objects.filter(
+                libroId=self.validated_data.get('libro').libroId).first()
+            if libro.deletedAt:
+                return "El libro no esta disponible"
+            try:
+                with transaction.atomic():
+                    self.validated_data.get('libro').libroCantidad = self.validated_data.get(
+                        'libro').libroCantidad - 1
+                    # guardamos esa modificacion del libro en la bd
+                    self.validated_data.get('libro').save()
+                    # creamos la nueva instancia de Prestamo model con todos sus parametros
+                    nuevoPrestamo = PrestamoModel(
+                        prestamoFechaInicio=self.validated_data.get(
+                            'prestamoFechaInicio', date.today()),
+                        prestamoFechaFin=self.validated_data.get(
+                            'prestamoFechaFin'),
+                        prestamoEstado=self.validated_data.get(
+                            'prestamoEstado', True),
+                        usuario=self.validated_data.get('usuario'),
+                        libro=self.validated_data.get('libro'),
+                    )
+                    # guardamos esa instancia en la base de datos generando un nuevo prestamo
+                    nuevoPrestamo.save()
+                    # retornamos el nuevo prestamo creado
+                    return nuevoPrestamo
+            except Error as error:
+                print(error)
+                return error
+        else:
+            # lanzaremos un error de validacion cuando no exista el libro O el usuario
+            return 'El libro no tiene suficientes unidades'
+
+    class Meta:
+        model = PrestamoModel
         fields = '__all__'

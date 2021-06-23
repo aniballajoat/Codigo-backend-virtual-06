@@ -1,11 +1,15 @@
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import CreateAPIView, ListCreateAPIView, RetrieveAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.response import Response
 from rest_framework.request import Request
 from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.decorators import api_view
-from .models import LibroModel, UsuarioModel
-from .serializers import LibroSerializer, BusquedaLibroSerializer, UsuarioSerializer
+from .models import LibroModel, PrestamoModel, UsuarioModel
+from .serializers import (LibroSerializer,
+                          BusquedaLibroSerializer,
+                          UsuarioSerializer,
+                          PrestamoSerializer)
+
 from rest_framework.pagination import PageNumberPagination
 
 
@@ -146,6 +150,7 @@ def busqueda_libros(request: Request):
     # ambos parametros son opcionales (si no me manda nada retornare todos los libros)
     # hacer la busqueda dependiendo de los parametros
 
+    # https://docs.djangoproject.com/en/3.2/ref/models/querysets/#field-lookups
     # SELECT * FROM LIBROS WHERE LIBRONOMBRE LIKE '%'+nombre+'%'
     # Metodo corto
     resultado = LibroModel.objects.filter(
@@ -209,3 +214,37 @@ class UsuariosController(ListCreateAPIView):
     queryset = UsuarioModel.objects.all()
     serializer_class = UsuarioSerializer
     pagination_class = PaginacionPersonalizada
+
+
+class PrestamosController(CreateAPIView):
+    queryset = PrestamoModel.objects.all()
+    serializer_class = PrestamoSerializer
+
+    def post(self, request: Request):
+        data = request.data
+        nuevoPrestamo = PrestamoSerializer(data=data)
+        # nuevoPrestamo.validacion()
+        if nuevoPrestamo.is_valid():
+            respuesta = nuevoPrestamo.save()
+            print(type(respuesta))
+            if type(respuesta) is PrestamoModel:
+                # una vez realizado el prestamo, ahora tener que disminuir la cantidad de ese libro.
+                return Response(data={
+                    "success": True,
+                    "content": nuevoPrestamo.data,
+                    "message": "Prestamo agregado exitosamente"
+                }, status=status.HTTP_201_CREATED)
+
+        return Response(data={
+            "success": False,
+            "content": nuevoPrestamo.errors or respuesta if type(respuesta) is str else respuesta.args,
+            "message": "Error al crear el prestamo"
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PrestamoController(RetrieveAPIView):
+    queryset = PrestamoModel.objects.all()
+    serializer_class = PrestamoSerializer
+
+    def get(self, request, id):
+        pass
