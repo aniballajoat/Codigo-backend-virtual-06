@@ -39,9 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'gestion',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -49,6 +51,31 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware'
+]
+# sirve para indicar los dominios los cuales van a poder acceder a mis metodos http
+CORS_ALLOWED_ORIGINS = [
+    '*'
+]
+
+# sirve para definir todos los origenes pero usando expresiones regulares
+CORS_ALLOWED_ORIGINS_REGEXES = [
+    r'^https://\w+\.dominio\.com$'
+]
+# sirve para definir absolutamente todos los origenes, no usara las variables CORS_ALLOWED_ORIGINS, CORS_ALLOWED_ORIGIN_REGEXES
+CORS_ALLOW_ALL_ORIGINS = True
+
+# sirve para definir que metodos se podra acceder
+CORS_ALLOW_METHODS = [
+    'GET',
+    'POST',
+]
+
+#sirve para definir que cabeceras podran ser proveidas
+CORS_ALLOW_HEADERS = [
+    'content-type',
+    'authorization',
+    'origin'
 ]
 
 ROOT_URLCONF = 'blog_personal.urls'
@@ -130,8 +157,9 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 5,
 }
+# STATIC_ROOT => cuando nosotros deseemos generar los archivos estaticos (css, js, html) propios de drf y django se almacenaran en la direccion que pongamos
+STATIC_ROOT = BASE_DIR / 'assets/'
