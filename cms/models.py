@@ -228,4 +228,4 @@ class DetalleModel(models.Model):
     )
 
     class Meta:
-        db_table = 'detalles'
+        db_table = 'detalles' 

@@ -10,6 +10,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 from pathlib import Path
 from dotenv import load_dotenv
 from os import environ
+from datetime import time, timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -136,3 +137,19 @@ AUTH_USER_MODEL = "cms.UsuarioModel"
 
 # sirve para mostrar y almacenar los archivos multimedia mediante la URL
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# sirve para indicar la ruta para devolver todos los archivos multimedia almacenados en el backend
+MEDIA_URL = '/assets/'
+
+# sirve para definir a DRF algunas configuraciones adicionales como la paginacion, la autenticacion y exepciones
+REST_FRAMEWORK={
+    #sirve para indicar cual sera la clase encargada de la autenticacion de los metodos REST
+    'DEFAULT_AUTHENTICATION_CLASSES':['rest_framework_simplejwt.authentication.JWTAuthentication',]
+}
+
+SIMPLE_JWT={
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1), # modifica tiempo de vida de la access token
+    'REFRESH_TOKEN_LIFETIME': timedelta(hours=1),# modifica tiempo de vida de la refresh token
+    # 'SIGNING_KEY' : 'mipassword' modifica la contraseña del token(indicar cual es la PK del model autenticacion)
+    'USER_ID_FIELD': 'usuarioId'
+}
