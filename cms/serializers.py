@@ -5,10 +5,12 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.conf import settings
+# from os import path
 
 
 class PlatoSerializer(serializers.ModelSerializer):
     platoFoto = serializers.CharField(max_length=100)
+
     class Meta:
         model = PlatoModel
         fields = '__all__'
@@ -22,11 +24,11 @@ class ArchivoSerializer(serializers.Serializer):
     def save(self):
         archivo: InMemoryUploadedFile = self.validated_data.get('archivo')
         # para ver el tipo de archivo que es
-        #print(archivo.content_type)
+        # print(archivo.content_type)
         # para ver el nombre del archivo
-        #print(archivo.name)
+        # print(archivo.name)
         # para ver el tamaño del archivo en bytes
-        #print(archivo.size)
+        # print(archivo.size)
         # para leer el archivo, una vez que se lee el archivo se elimina su informacion
         # archivo.read()
 
@@ -34,22 +36,31 @@ class ArchivoSerializer(serializers.Serializer):
             archivo.name, ContentFile(archivo.read()))
         return settings.MEDIA_URL + ruta
         # ruta_final = path.join(settings.MEDIA_ROOT, ruta)
-        #print(ruta)
-        #print(ruta_final)
+        # print(ruta)
+        # print(ruta_final)
 
 
 class EliminarArchivoSerializer(serializers.Serializer):
     nombre = serializers.CharField()
 
+
 class CustomPayloadSerializer(TokenObtainPairSerializer):
+    # un funcion incorparada en python que devuelve un metodo de la clase de la cual se esta heredando
+    # el metodo recibira la clase como primer argumento, cuando se llama a este metodo, se pasa a la clase como primer argumento en lugar de la instancia de la clase esto significa que puede utilizar la clase entera junto con sus propiedades dentro de este metodo sin tener que instanciar la clase
     @classmethod
-    def get_token(cls,user):
-        token = super(CustomPayloadSerializer,cls).get_token(user)
+    def get_token(cls, user: UsuarioModel):
+        token = super(CustomPayloadSerializer, cls).get_token(user)
+        print(token)
         token['usuarioTipo'] = user.usuarioTipo
+        token['user_mail'] = user.usuarioCorreo
         token['mensaje'] = 'Holis'
         return token
+
+
 class RegistroUsuarioSerializer(serializers.ModelSerializer):
+    # forma 1 para modificar algun atributo del model
     # password = serializers.CharField(write_only=True)
+
     def save(self):
         usuarioNombre = self.validated_data.get('usuarioNombre')
         usuarioApellido = self.validated_data.get('usuarioApellido')
@@ -62,7 +73,7 @@ class RegistroUsuarioSerializer(serializers.ModelSerializer):
             usuarioCorreo=usuarioCorreo,
             usuarioApellido=usuarioApellido,
             usuarioTipo=usuarioTipo,
-            usuarioTelefono=usuarioTelefono,
+            usuarioTelefono=usuarioTelefono
         )
         nuevoUsuario.set_password(password)
         nuevoUsuario.save()
@@ -70,12 +81,67 @@ class RegistroUsuarioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UsuarioModel
+        # fields = ['usuarioNombre', 'usuarioApellido']
         exclude = ['groups', 'user_permissions']
-        # es para dar configuracion adicional a los atributos de un model serializer, usando el atributo extra_kwargs se puede
-        # editar la configuracion de sis olo escritura, solo lectura, required, allow null, default y error messages
+        # es para dar configuracion adicional a los atributos de un model serializer, usando el atributo extra_kwargs se puede editar la configuracion de si solo escritura, solo lectura, required, allow null, default y error messages
         # no es necesario volver a declarar las mismas configuraciones iniciales ()
         extra_kwargs = {
-            'password':{
+            'password': {
                 'write_only': True
+            },
+            'usuarioId': {
+                'read_only': True
             }
         }
+
+
+class MesaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MesaModel
+        fields = '__all__'
+
+
+class DetalleSerializer(serializers.Serializer):
+    cantidad = serializers.IntegerField(min_value=1)
+    plato = serializers.IntegerField(min_value=1)
+
+    def validate(self,data):
+        try:
+            data['plato']=PlatoModel.objects.get(platoId=data.get('plato'))
+        except:
+            raise serializers.ValidationError(
+                detail='El plato no existe'
+            )
+        if data['plato'].platoCantidad < data.get('cantidad'):
+            raise serializers.ValidationError(
+                detail='La cantidad es mayor que la disponible'
+            )
+        return data
+
+
+class PedidoSerializer(serializers.Serializer):
+    documento_cliente = serializers.CharField(
+        required=False, min_length=8, max_length=11)
+    mesa = serializers.IntegerField(min_value=1)
+    detalle = DetalleSerializer(many=True)
+
+    def validate(self, data):
+        # validar si la mesa existe en la bd
+
+        try:
+            data['mesa']=MesaModel.objects.get(mesaId=data.get('mesa'))
+            # iterarlo 
+            #data.get('mesa')=MesaModel.objects.get(mesaId=data.get('mesa'))
+            # buscar si existe el plato(hacerlo en el serializer)
+
+        except:
+            raise serializers.ValidationError(
+                detail='La mesa no existe'
+            )
+        # si hay un documento_cliente Y si es que alguna de la siguientes condiciones es verdadera: si la longitudo del documento es 8 O la longitudo del documento es 11
+        if data.get('documento_cliente') and (len(data.get('documento_cliente')) == 8 or len(data.get('documento_cliente')) == 11):
+            return data
+        if data.get('documento_cliente') is None:
+            return data
+        raise serializers.ValidationError(
+            detail='El documento debe ser 8 u 11 caracteres')

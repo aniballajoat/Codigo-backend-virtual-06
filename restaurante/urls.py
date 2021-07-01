@@ -9,7 +9,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 urlpatterns = [
     # path('admin/', admin.site.urls),
     path('cms/', include('cms.urls')),
-    path('login/', TokenObtainPairView.as_view())
+    path('login/', TokenObtainPairView.as_view()),
+    path('facturacion/',include('facturacion.urls')),
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 # el metodo static retornara una lista de URLPattern y se pasa dos parametro:
 # 1. la url (el prefijo) con el cual se accedera a esa ruta
