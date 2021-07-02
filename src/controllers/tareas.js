@@ -80,6 +80,7 @@ export const buscarTarea = (req, res) =>{
     // buscar la tarea segun el valor, si es nombre buscar x nombre, si es estado buscar por estado, si es por id buscar por id
     // si manda todos, buscar todos
     res.json({
-        message: "Ok"
-    })
+        message: "Ok",
+        content: resultado,
+    });
 }
