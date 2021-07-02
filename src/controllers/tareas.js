@@ -63,3 +63,23 @@ export const devolverTarea = (req, res) => {
     message: null,
   });
 };
+
+export const buscarTarea = (req, res) =>{
+    // utilizar loes query params
+    console.log(req.query);
+    const filters = req.query;
+    let resultado = [];
+    resultado = tareas.filter((tarea)=>{
+        let isValid = true;
+        for (let key in filters){
+            console.log(key, tarea[key], filters[key]);
+            isValid = isValid && tarea[key] == filters[key];
+        }
+        return isValid;
+    });
+    // buscar la tarea segun el valor, si es nombre buscar x nombre, si es estado buscar por estado, si es por id buscar por id
+    // si manda todos, buscar todos
+    res.json({
+        message: "Ok"
+    })
+}
