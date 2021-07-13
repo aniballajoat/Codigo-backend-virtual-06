@@ -41,13 +41,16 @@ export const crearTipo = async (
 };
 
 // retornar todos los tipos
-export const listarTipos = async(req: Request, res: Response):Promise<Response> =>{
-    const tipos = await Tipo.findAll();
-    const rpta: TRespuesta = {
-        success: true,
-        content: tipos,
-        message: '',
-    };
+export const listarTipos = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const tipos = await Tipo.findAll();
+  const rpta: TRespuesta = {
+    success: true,
+    content: tipos,
+    message: "",
+  };
 
-    return res.status(200).json(rpta);
+  return res.status(200).json(rpta);
 };

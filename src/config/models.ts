@@ -1,4 +1,5 @@
 import { DataTypes } from "sequelize";
+import { hashSync } from "bcrypt";
 import conexion from "../config/sequelize";
 
 const productoModel = () =>
@@ -35,11 +36,6 @@ const productoModel = () =>
         type: DataTypes.BOOLEAN,
         defaultValue: true,
         field: "estado",
-      },
-      productoImagen: {
-        type: DataTypes.TEXT,
-        defaultValue: "https://loremflickr.com/500/500",
-        field: "imagen",
       },
       productoDescripcion: {
         type: DataTypes.STRING(45),
@@ -112,8 +108,8 @@ const usuarioModel = () =>
         type: DataTypes.STRING(45),
         field: "nombre",
         validate: {
-          // is: /([A-Z])\w+([ ])/,
-          isNumeric: false,
+          is: /([A-Z])\w+([ ])/,
+          // isNumeric: false,
         },
         allowNull: false,
       },
@@ -124,21 +120,17 @@ const usuarioModel = () =>
           isEmail: true,
         },
         allowNull: false,
+        unique: true,
       },
       usuarioPassword: {
         type: DataTypes.TEXT,
         field: "password",
-        validate: {
-          isAlpha: true,
-        },
         allowNull: false,
-      },
-      usuarioImagen: {
-        type: DataTypes.TEXT,
-        field: "imagen",
-        allowNull: false,
-        validate: {
-          isUrl: true,
+        set(passwordSinEncriptar) {
+          // aca encriptare mi contraseña
+          const passwordEncriptada = hashSync(String(passwordSinEncriptar), 10);
+          console.log(passwordEncriptada);
+          this.setDataValue("usuarioPassword", passwordEncriptada);
         },
       },
     },
@@ -176,7 +168,7 @@ const movimientoModel = () =>
         allowNull: false,
       },
       movimientoTotal: {
-        type: DataTypes.DECIMAL(5, 2),
+        type: DataTypes.DECIMAL(6, 2),
         field: "total",
         allowNull: false,
       },
@@ -214,6 +206,55 @@ const detalleMovimientoModel = () =>
     }
   );
 
+const blackListModel = () =>
+  conexion.define(
+    "blackList",
+    {
+      blackListToken: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+        primaryKey: true,
+      },
+    },
+    {
+      tableName: "black_list",
+      timestamps: false,
+    }
+  );
+
+const imagenModel = () =>
+  conexion.define(
+    "imagen",
+    {
+      imagenId: {
+        primaryKey: true,
+        autoIncrement: true,
+        type: DataTypes.INTEGER,
+        unique: true,
+        field: "id",
+      },
+      imagenNombre: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+        field: "nombre",
+      },
+      imagenExtension: {
+        type: DataTypes.STRING(5),
+        field: "extension",
+        allowNull: false,
+      },
+      imagenPath: {
+        type: DataTypes.TEXT,
+        field: "path",
+        allowNull: false,
+      },
+    },
+    {
+      tableName: "imagenes",
+      timestamps: false,
+    }
+  );
+
 // RELACIONES
 
 export const Producto = productoModel();
@@ -222,20 +263,126 @@ export const Accion = accionModel();
 export const Usuario = usuarioModel();
 export const Movimiento = movimientoModel();
 export const DetalleMovimiento = detalleMovimientoModel();
+export const BlackList = blackListModel();
+export const Imagen = imagenModel();
 
+// BlackList.sync({ force: true });
+Producto.hasMany(DetalleMovimiento, {
+  foreignKey: {
+    name: "productoId",
+    allowNull: false,
+    field: "producto_id",
+  },
+});
+DetalleMovimiento.belongsTo(Producto, {
+  foreignKey: {
+    name: "productoId",
+    allowNull: false,
+    field: "producto_id",
+  },
+});
 
-Producto.hasMany(DetalleMovimiento, { foreignKey: "producto_id" });
-DetalleMovimiento.belongsTo(Producto, { foreignKey: "producto_id" });
+Tipo.hasMany(Accion, {
+  foreignKey: {
+    name: "tipoId",
+    allowNull: false,
+    field: "tipo_id",
+  },
+});
+Accion.belongsTo(Tipo, {
+  foreignKey: { name: "tipoId", allowNull: false, field: "tipo_id" },
+});
 
+Tipo.hasMany(Usuario, {
+  foreignKey: { name: "tipoId", allowNull: false, field: "tipo_id" },
+});
+Usuario.belongsTo(Tipo, {
+  foreignKey: { name: "tipoId", allowNull: false, field: "tipo_id" },
+});
 
-Tipo.hasMany(Accion, { foreignKey: {name: "tipo_id", allowNull: false }});
-Accion.belongsTo(Tipo, { foreignKey: {name: "tipo_id", allowNull: false } });
+Usuario.hasMany(Movimiento, {
+  foreignKey: {
+    name: "usuarioId",
+    allowNull: false,
+    field: "usuario_id",
+  },
+});
+Movimiento.belongsTo(Usuario, {
+  foreignKey: {
+    name: "usuarioId",
+    allowNull: false,
+    field: "usuario_id",
+  },
+});
 
-Tipo.hasMany(Usuario, { foreignKey: "tipo_id" });
-Usuario.belongsTo(Tipo, { foreignKey: "tipo_id" });
+Movimiento.hasMany(DetalleMovimiento, {
+  foreignKey: {
+    name: "movimientoId",
+    allowNull: false,
+    field: "movimiento_id",
+  },
+});
+DetalleMovimiento.belongsTo(Movimiento, {
+  foreignKey: {
+    name: "movimientoId",
+    allowNull: false,
+    field: "movimiento_id",
+  },
+});
 
-Usuario.hasMany(Movimiento, { foreignKey: "usuario_id" });
-Movimiento.belongsTo(Usuario, { foreignKey: "usuario_id" });
+// Relacion de uno a uno
+Imagen.hasOne(Usuario, {
+  foreignKey: { name: "imagenId", field: "imagen_id" },
+});
+Usuario.belongsTo(Imagen, {
+  foreignKey: { name: "imagenId", field: "imagen_id" },
+});
 
-Movimiento.hasMany(DetalleMovimiento, { foreignKey: "movimiento_id" });
-DetalleMovimiento.belongsTo(Movimiento, { foreignKey: "movimiento_id" });
+// Relacion de muchos a muchos
+Producto.belongsToMany(Imagen, { through: "productos_imagenes" });
+Imagen.belongsToMany(Producto, { through: "productos_imagenes" });
+
+/*
+Producto.belongsToMany(Imagen, {
+  through: {
+    model: conexion.define(
+      "producto_imagen",
+      {
+        productoProductoId: {
+          type: DataTypes.INTEGER,
+          references: { model: Producto, key: "id" },
+          field: "producto_id",
+        },
+        imagenImagenId: {
+          type: DataTypes.INTEGER,
+          references: { model: Imagen, key: "id" },
+          field: "imagen_id",
+        },
+      },
+      { timestamps: false, tableName: "productos_imagenes" }
+    ),
+    unique: true,
+  },
+});
+Imagen.belongsToMany(Producto, {
+  through: {
+    model: conexion.define(
+      "producto_imagen",
+      {
+        productoProductoId: {
+          type: DataTypes.INTEGER,
+          references: { model: Producto, key: "id" },
+          field: "producto_id",
+        },
+        imagenImagenId: {
+          type: DataTypes.INTEGER,
+          references: { model: Imagen, key: "id" },
+          field: "imagen_id",
+        },
+      },
+      { timestamps: false, tableName: "productos_imagenes" }
+    ),
+    unique: true,
+  },
+});
+*/
