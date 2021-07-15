@@ -8,10 +8,10 @@ import conexion from "./sequelize";
 import { productoRouter } from "../routes/producto";
 import { imagenRouter } from "../routes/imagen";
 import { movimientoRouter } from "../routes/movimiento";
-import documentation from "./swagger.json"
-import swaggerUI from "swagger-ui-express"
-
+import swaggerUI from "swagger-ui-express";
+import documentacion from "./swagger.json";
 require("dotenv").config();
+
 export default class Server {
   app: Express;
   port: string = "";
@@ -29,15 +29,15 @@ export default class Server {
     this.app.use(morgan("dev"));
   }
 
-  CORS(){
-    this.app.use((req: Request, res: Response, next: NextFunction)=>{
+  CORS() {
+    this.app.use((req: Request, res: Response, next: NextFunction) => {
       // Access-Control-Allow-Origin => indicar que origenes (dominios pueden acceder a mi API)
-      res.header('Access-Control-Allow-Origin','*')
+      res.header("Access-Control-Allow-Origin", process.env.DOMINIOS);
       // Access-Control-Allow-Headers => indicar que tipos de cabeceras pueden ser enviadas
-      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+      res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
       // Access-Control-Allow-Methods => indica que metodos pueden ser intentar acceder a mi backend
-      res.header('Access-control-Allow-Methods', 'GET, POST, PUT, DELETE')
-      // si es que cumple el origen (dominio), el header y el metodo entonces daremos paso al controlador solicitado
+      res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+      // si es que cumple el origen (dominio), el header Y el metodo entonces daremos paso al controlador solicitado
       next();
     });
   }
@@ -46,7 +46,14 @@ export default class Server {
     this.app.get("/", (req: Request, res: Response) => {
       res.send("Bienvenido a la api de zapateria");
     });
-    this.app.use("/docs", swaggerUI.serve, swaggerUI.setup(documentation));
+    process.env.NODE_ENV !== "production"
+      ? ((documentacion.host = `localhost:${this.port}`),
+        (documentacion.schemes = ["http"]))
+      : ((documentacion.host = `zapateria-ts-eduardo.herokuapp.com`),
+        (documentacion.schemes = ["https"]));
+
+    this.app.use("/docs", swaggerUI.serve, swaggerUI.setup(documentacion));
+
     this.app.use(tipoRouter);
     this.app.use(accionRouter);
     this.app.use(usuarioRouter);
