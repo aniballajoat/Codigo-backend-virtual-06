@@ -1,7 +1,13 @@
 import { Schema, model } from "mongoose";
 import {hashSync} from "bcrypt";
 
-
+const direccionSchema = new Schema({
+    zip: Schema.Types.String,
+    calle:Schema.Types.String,
+    numero:Schema.Types.Number,
+},{
+    _id: false, timestamps: false
+})
 
 const usuarioSchema = new Schema({
     usuarioCorreo: {
@@ -13,6 +19,22 @@ const usuarioSchema = new Schema({
         type: Schema.Types.String,
         alias: 'nombre',
         required: true,
+    },
+    usuarioApellido:{
+        type: Schema.Types.String,
+        alias: 'apellido',
+    },
+    usuarioTelefono:{
+        type: Schema.Types.String,
+        alias: 'telefono',
+    },
+    usuarioDni:{
+        type: Schema.Types.String,
+        alias: 'dni',
+    },
+    usuarioDireccion: {
+        type: direccionSchema,
+        alias: "direccion",
     },
     usuarioPassword: {
         type: Schema.Types.String,

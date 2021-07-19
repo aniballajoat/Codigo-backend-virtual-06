@@ -1,11 +1,11 @@
 import { Router } from "express";
-import { actualizarProductoDto } from "./dto.request.ts";
+import { actualizarProductoDto } from "./dto.request";
 import { 
     actualizarProducto, 
     crearProducto, 
     eliminarProducto, 
     mostrarProductos,
- } from "./producto.controller";
+ } from "./producto.controllers";
 
 export const productoRouter = Router();
 

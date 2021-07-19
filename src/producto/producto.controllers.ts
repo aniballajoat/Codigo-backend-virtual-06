@@ -1,6 +1,7 @@
 import { Producto } from "./producto.model";
 import { Request, Response } from "express";
 import { paginatedHelper, paginationSerializer } from "../utils/paginador.helper";
+import { TActualizarProducto } from "./dto.request";
 
 export const crearProducto = async(req: Request, res: Response) =>{
     try{

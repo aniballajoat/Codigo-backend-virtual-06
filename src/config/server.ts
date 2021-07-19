@@ -50,6 +50,7 @@ export default class Server {
                 useNewUrlParser: true,          // usar el nuevo parseador de la URI
                 useUnifiedTopology: true,       // usar el nuevo Current Server Discovery
                 serverSelectionTimeoutMS: 5000, // para modificar el tiempo de espera de conexion al servidor
+                useFindAndModify: false,        // cuando queremos usar findOneAndUpdate o FindOneAndDelete tenemos que indicar esta opcion ya que proximamente sera deprecado
             });
 
             console.log("Base de datos sincronizada correctamente 🎉");
