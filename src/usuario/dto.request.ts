@@ -77,7 +77,7 @@ export const registroDto = async(
         data.usuarioNombre = json.data?.nombres;
         data.usuarioApellido = `${json.data?.apellido_paterno} ${json.data?.apellido_materno}`;
       // fin de tarea
-      if (data.usuarioTipo === tipoUsuario.PERSONAL) {
+      if (data.usuarioTipo === tipoUsuario.PERSONAL && data?.usuarioPassword) {
         next();
       }
       if (data.usuarioTipo === tipoUsuario.CLIENTE) {
@@ -90,6 +90,13 @@ export const registroDto = async(
             message: "Error al crear el cliente, faltan campos",
           });
         }
+      }else{
+  
+        return res.status(400).json({
+          success: false,
+          content: null,
+          message: "Error al crear el usuario, faltan campos",
+        });
       }
     }else{
   
