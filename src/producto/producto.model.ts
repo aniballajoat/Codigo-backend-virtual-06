@@ -1,33 +1,43 @@
-import { Types, model, Schema } from "mongoose";
+import { model, Schema } from "mongoose";
 
-const productoSchema = new Schema({
+interface Producto {
+  productoNombre: string;
+  productoPrecio: number;
+  productoImagen?: string;
+  productoTipo?: string;
+  detalles?: Array<string>;
+}
+
+const productoSchema = new Schema<Producto>(
+  {
     productoNombre: {
-        type: Schema.Types.String,
-        required: true,
-        alias: 'nombre',
-        maxLength: 40
+      type: Schema.Types.String,
+      required: true,
+      alias: "nombre",
+      maxLength: 40,
     },
     productoPrecio: {
-        type: Schema.Types.Decimal128,
-        required: true,
-        alias: "precio",
+      type: Schema.Types.Decimal128,
+      required: true,
+      alias: "precio",
     },
     productoImagen: {
-        type: Schema.Types.String,
-        alias: "imagen",
-        default: 'default.png'
+      type: Schema.Types.String,
+      alias: "imagen",
+      default: "default.png",
     },
     productoTipo: {
-        type: Schema.Types.String,
-        alias: "tipo",
-        enum: ['LATTES','COMIDA','MERCHANDISING','FRAPPS'],
+      type: Schema.Types.String,
+      alias: "tipo",
+      enum: ["LATTES", "COMIDA", "MERCHANDISING", "FRAPPS"],
     },
     detalles: {
-        type: Schema.Types.ObjectId,
+      type: [Schema.Types.ObjectId],
     },
-},
-{
-    versionKey: "_version",
-});
+  },
+  {
+    versionKey: "__version",
+  }
+);
 
-export const Producto = model("productos", productoSchema);
+export const Producto = model<Producto>("productos", productoSchema);
