@@ -2,8 +2,9 @@ import { Request, Response } from "express";
 import { Producto } from "../producto/producto.model";
 import { RequestUser } from "../utils/validador";
 import { IMovimiento, Movimiento } from "./movimiento.model";
-import { configure } from "mercadopago";
-import { CreatePreferencePayload } from "mercadopago/models/preferences/create-payload.model";
+import { configure, preferences } from "mercadopago";
+import { CreatePreferencePayload, PreferenceItem } from "mercadopago/models/preferences/create-payload.model";
+import { Usuario } from "../usuario/usuario.model";
 
 // https://www.typescriptlang.org/docs/handbook/utility-types.html
 interface ILMovimiento extends Omit<IMovimiento, "vendedorId"> {}
@@ -63,17 +64,19 @@ export const crearPreferencia = async (req: Request, res: Response) => {
   // de acuerdo al id del movimiento por el body buscar en la bd si existe sino no proceder
 
   configure({
-    access_token: String(process.env.ACCESS_TOKEN_PR),
-    integrator_id: String(process.env.INTEGRATOR_ID_PR),
+    access_token: String(process.env.ACCESS_TOKEN_MP),
+    integrator_id: String(process.env.INTEGRATOR_ID_MP),
   })
 
-  const preferencia: CreatePreferencePayload={
+  const payload: any={
     auto_return: 'approved',
+    notification_url: process.env.NOTIFICATION_URL,
     back_urls:{
-      success: 'http://127.0.0.1:8000/success',
-      failure: 'http://127.0.0.1:8000/failure',
-      pending: 'http://127.0.0.1:8000/pending',
+      success: process.env.SUCCESS_URL,
+      failure: process.env.FAILURE_URL,
+      pending: process.env.PENDING_URL,
     },
+    /*
     items: [{
       id: '123123',
       title: 'zapatito de bebe',
@@ -87,11 +90,11 @@ export const crearPreferencia = async (req: Request, res: Response) => {
   ],
     payer:{
       name: 'Anibal',
-      surname: 'De Rivero',
+      surname: 'Lajo',
       email: 'test_user_46542185@testuser.com',
       phone:{
         area_code: '51',
-        number: '974845632'
+        number: 974845632
       },
       identification:{
         type:'dni',
@@ -100,10 +103,11 @@ export const crearPreferencia = async (req: Request, res: Response) => {
       address:{
         zip_code: '04002',
         street_name: 'Av Primavera',
-        street_number: '1150',
+        street_number: 1150,
       },
       date_created:'2021-07-21',
     },
+    */
     payment_methods:{
       excluded_payment_methods:[
         {
@@ -118,22 +122,83 @@ export const crearPreferencia = async (req: Request, res: Response) => {
   };
   const { movimientoId } = req.body;
   try {
+    
     const movimiento = await Movimiento.findById(movimientoId);
     if (!movimiento) {
       throw new Error();
     }
+    const usuario = await Usuario.findById(movimiento.usuarioId);
+    console.log(usuario);
+    if(!usuario){
+      throw new Error('Usuario no encontrado')
+    }
+    payload.payer = {
+      name: usuario.usuarioNombre,
+      surname: usuario.usuarioApellido,
+      address: {
+        zip_code: usuario.usuarioDireccion?.zip ?? '',
+        street_name: usuario.usuarioDireccion?.calle ?? '',
+        street_number: usuario.usuarioDireccion?.numero ?? 0,
+      },
+      phone:{
+        area_code: '51',
+        number: usuario.usuarioTelefono ? +usuario.usuarioTelefono : 0,
+      },
+      email: "test_user_46542185@testuser.com",
+      identification: {
+        type: "DNI",
+        number: usuario.usuarioDni,
+      }
+    }
+
+    const items: PreferenceItem[]=[];
+    const host = req.get("host") ?? '';
+    await Promise.all(
+      movimiento.movimientoDetalles.map(async(detalle)=>{
+        const producto = await Producto.findById(detalle.productoId)
+        if(producto){
+        const item: PreferenceItem={
+          id: detalle.productoId,
+          title: producto?.productoNombre,
+          description: '',
+          picture_url: host + producto?.productoImagen,
+          category_id: producto?.productoTipo,
+          quantity: detalle.detalleCantidad,
+          currency_id: "PEN",
+          unit_price: Number(detalle.detallePrecio),
+        }
+        items.push(item);
+      }
+      })
+    );
+
+    payload.items=items;
+
+    const preferencia = await preferences.create(payload);
+    console.log(preferencia);
+    console.log(movimiento);
     // devolver todos los detalles con sus  respectivos productos
     // {
     //   movimientoId: "123123l2313k13j";
     // }
     return res.json({
       success: true,
+      content: preferencia.response.init_point,
+      message: null,
     });
   } catch (error) {
     return res.status(404).json({
       success: false,
-      content: null,
-      message: `El movimiento no existe`,
+      content: error,
+      message: error.message,
     });
   }
+};
+
+export const mpEventos = (req: Request, res: Response) =>{
+  console.log(req.body);
+  console.log(req.query);
+  return res.status(200).json({
+
+  });
 };

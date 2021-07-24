@@ -3,9 +3,9 @@ import express from "express";
 import { json, Express, Request, Response, NextFunction } from "express";
 import { connect } from "mongoose";
 import { imagenRouter } from "../imagen/imagen.routes";
-import { movimientoRouter } from "../movimiento/movimiento.routes";
 import { productoRouter } from "../producto/producto.routes";
 import { usuarioRouter } from "../usuario/usuario.routes";
+import { movimientoRouter } from "../movimiento/movimiento.routes";
 require("dotenv").config();
 
 export default class Server {
@@ -30,10 +30,17 @@ export default class Server {
         success: true,
       });
     });
+    // console.log(__dirname.search("src"));
+    // console.log(__dirname.slice(0, 78));
     const ubicacionProyecto = __dirname.slice(0, __dirname.search("src"));
     this.app.use("/assets", express.static(ubicacionProyecto + "/media"));
-
-    this.app.use("/api", productoRouter, usuarioRouter, imagenRouter, movimientoRouter);
+    this.app.use(
+      "/api",
+      productoRouter,
+      usuarioRouter,
+      imagenRouter,
+      movimientoRouter
+    );
   }
 
   CORS() {
@@ -52,7 +59,7 @@ export default class Server {
     this.app.listen(this.port, async () => {
       console.log("Servidor corriendo exitosamente 🚀");
       try {
-        await connect(String(process.env.MONGO_URL), {
+        await connect(String(process.env.MONGO_URL_PROD), {
           useNewUrlParser: true, // usar el nuevo parseador de la URI
           useUnifiedTopology: true, // usar el nuevo Current Server Discovery
           serverSelectionTimeoutMS: 5000, // modificar el tiempo de espera de conexion al servidor de bd
