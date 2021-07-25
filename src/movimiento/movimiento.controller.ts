@@ -272,3 +272,12 @@ export const mpEventos = async(req: Request, res: Response) =>{
 
   });
 };
+
+export const listarMovimientos = async (req: Request, res: Response) => {
+  const movimientos = await Movimiento.find();
+  return res.json({
+    success: true,
+    content: movimientos,
+    message: null,
+  });
+};
