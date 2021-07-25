@@ -199,13 +199,35 @@ export const crearPreferencia = async (req: Request, res: Response) => {
   }
 };
 
-export const mpEventos = (req: Request, res: Response) =>{
+export const mpEventos = async(req: Request, res: Response) =>{
+  const {id, topic} = req.query;
   console.log("--------------------------------------------------------------------------")
   console.log("BODY:");
   console.log(req.body);
   console.log("--------------------------------------------------------------------------")
   console.log("QUERY PARAMS:");
   console.log(req.query);
+  // cuando nos llegue por los query params el topic payment y el id haremos la consulta del estado del pago a la ruta
+  // https://api.mercadopago.com/v1/payments/<id>
+  /*
+  "payment_method_id": "pagoefectivo_atm", | "visa" | "mastercard" | "american_express"
+  "payment_type_id": "atm", | "credit_card"
+  "status": "pending", | "approved"
+  "status_detail": "pending_waiting_payment", | "accredited"
+  "collector_id": 677408439,
+  si es un pago con tarjeta entonces guardaremos los 6 primeros digitos de la tarjeta
+  */
+ if (topic==='payment'){
+   console.log("============================================");
+   const response = await fetch(
+     `https://api.mercadopago.com/v1/payments/${id}`,
+     { headers: { Authorization: process.env.ACCESS_TOKEN_MP ?? ""} }
+     );
+     const json = await response.json();
+     console.log(json.status)
+     console.log("============================================");
+
+ }
   console.log("--------------------------------------------------------------------------")
   return res.status(200).json({
 
