@@ -220,13 +220,13 @@ export const mpEventos = async(req: Request, res: Response) =>{
  if (topic==='payment'){
    console.log("============================================");
    const pago = await payment.get(Number(id), {
-     headers:{Authorizarion: process.env.ACCESS_TOKEN_MP ?? ""}
+     headers:{Authorizarion: `Bearer ${process.env.ACCESS_TOKEN_MP}`}
     });
     console.log('Pago del payment');
     console.log(pago);
    const response = await fetch(
      `https://api.mercadopago.com/v1/payments/${id}`,
-     { headers: { Authorization: process.env.ACCESS_TOKEN_MP ?? ""} }
+     { headers: { Authorization: `Bearer ${process.env.ACCESS_TOKEN_MP}`} }
      );
      const json = await response.json();
      console.log('Pago del fetch');
