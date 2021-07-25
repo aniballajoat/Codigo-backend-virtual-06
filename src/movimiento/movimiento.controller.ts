@@ -240,7 +240,9 @@ export const mpEventos = async(req: Request, res: Response) =>{
       status_detail, 
       collector_id
     } = pago.body;
-    const movimiento = await Movimiento.findOne({"movimientoPasarela.colectorId": collector_id});
+    const movimiento = await Movimiento.findOne({
+      "movimientoPasarela.collectorId": collector_id,
+    });
     
     let first_six_digits;
     if (payment_type_id === 'credit_card' || payment_type_id === 'debit_card'){

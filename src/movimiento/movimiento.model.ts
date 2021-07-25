@@ -57,7 +57,6 @@ const pasarelaSchema = new Schema<Pasarela>(
     },
     status: {
       type: Schema.Types.String,
-      alias: "status",
     },
     statusDetail: {
       type: Schema.Types.String,
@@ -67,7 +66,7 @@ const pasarelaSchema = new Schema<Pasarela>(
       type: Schema.Types.String,
       alias: "collector_id",
     },
-    firstSixDigits:{
+    firstSixDigits: {
       type: Schema.Types.String,
       alias: "first_six_digits",
     },
