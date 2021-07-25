@@ -244,7 +244,7 @@ export const mpEventos = async(req: Request, res: Response) =>{
     
     let first_six_digits;
     if (payment_type_id === 'credit_card' || payment_type_id === 'debit_card'){
-      first_six_digits = pago.body.card;
+      first_six_digits = pago.body.card.first_six_digits;
     }
     
     if(movimiento) {
