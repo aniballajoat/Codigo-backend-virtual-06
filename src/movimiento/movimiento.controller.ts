@@ -42,6 +42,7 @@ export const crearMovimiento = async (req: RequestUser, res: Response) => {
       movimientoDetalles,
       usuarioId,
       vendedorId: vendedor,
+      movimientoPasarela: {}
     };
 
     const nuevoMovimiento = await Movimiento.create(movimiento);
@@ -179,6 +180,14 @@ export const crearPreferencia = async (req: Request, res: Response) => {
     payload.items=items;
 
     const preferencia = await preferences.create(payload);
+
+
+    movimiento.movimientoPasarela.collectorId =  
+    preferencia.response.collector_id;
+    await movimiento.save();
+
+
+
     console.log(preferencia);
     console.log(movimiento);
     // devolver todos los detalles con sus  respectivos productos
@@ -220,17 +229,39 @@ export const mpEventos = async(req: Request, res: Response) =>{
  if (topic==='payment'){
    console.log("============================================");
    const pago = await payment.get(Number(id), {
-     headers:{Authorizarion: `Bearer ${process.env.ACCESS_TOKEN_MP}`}
+     headers:{Authorization: `Bearer ${process.env.ACCESS_TOKEN_MP}`}
     });
     console.log('Pago del payment');
-    console.log(pago);
-   const response = await fetch(
+    console.log(pago.body.status);
+    const{
+      payment_method_id, 
+      payment_type_id, 
+      status, 
+      status_detail, 
+      collector_id
+    } = pago.body;
+    const movimiento = await Movimiento.findOne({"movimientoPasarela.colectorId": collector_id});
+    
+    let first_six_digits;
+    if (payment_type_id === 'credit_card' || payment_type_id === 'debit_card'){
+      first_six_digits = pago.body.card;
+    }
+    
+    if(movimiento) {
+      movimiento.movimientoPasarela.paymentMethodId = payment_method_id;
+      movimiento.movimientoPasarela.paymentTypeId = payment_type_id;
+      movimiento.movimientoPasarela.status = status;
+      movimiento.movimientoPasarela.statusDetail = status_detail;
+      movimiento.movimientoPasarela.firstSixDigits = first_six_digits;
+      await movimiento.save();
+    }
+   /*const response = await fetch(
      `https://api.mercadopago.com/v1/payments/${id}`,
      { headers: { Authorization: `Bearer ${process.env.ACCESS_TOKEN_MP}`} }
      );
      const json = await response.json();
      console.log('Pago del fetch');
-     console.log(json.status)
+     console.log(json.status)*/
      console.log("============================================");
 
  }
